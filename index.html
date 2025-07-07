@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Seriales</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="title">Generador de Seriales Ultra Únicos</h1>
+            <div class="language-selector">
+                <button class="lang-btn active" data-lang="es">ES</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="minSegmentLength">Longitud Mínima de Segmento:</label>
+            <input type="number" id="minSegmentLength" value="4" min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="maxSegmentLength">Longitud Máxima de Segmento:</label>
+            <input type="number" id="maxSegmentLength" value="8" min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="randomPartLength">Longitud de Parte Aleatoria (sin guiones/timestamp):</label>
+            <input type="number" id="randomPartLength" value="24" min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="prefix">Prefijo (Opcional):</label>
+            <input type="text" id="prefix" value="PRODKEY">
+        </div>
+
+        <button id="generateButton">Generar Serial</button>
+
+        <div id="serialOutput">
+            Haz clic en "Generar Serial"
+        </div>
+
+        <div class="copy-button-container">
+            <button id="copyButton">Copiar Serial</button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
