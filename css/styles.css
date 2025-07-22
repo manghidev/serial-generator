@@ -20,48 +20,126 @@ body {
     max-width: 600px;
     width: 100%;
     border: 1px solid #0f3460;
+    position: relative;
 }
 
-/* Header y selector de idioma */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
-
-h1 {
-    color: #e94560;
-    text-align: center;
-    font-size: 1.8em;
-    letter-spacing: 0.5px;
-    margin: 0;
-    flex-grow: 1;
-}
-
+/* Selector de idioma */
 .language-selector {
+    position: absolute;
+    top: 15px;
+    right: 20px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    z-index: 10;
 }
 
 .lang-btn {
     background-color: #0f3460;
     color: #e0e0e0;
     border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
+    padding: 6px 10px;
+    border-radius: 15px;
     cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.3s ease;
+    font-size: 0.8em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .lang-btn:hover {
     background-color: #1a4a82;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .lang-btn.active {
     background-color: #e94560;
     color: white;
+    box-shadow: 0 3px 6px rgba(233, 69, 96, 0.3);
+}
+
+/* Header */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    margin-top: 10px;
+}
+
+h1 {
+    color: #e94560;
+    font-size: 1.8em;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* Navegación por pestañas */
+.tab-navigation {
+    display: flex;
+    margin: 20px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #0f3460;
+}
+
+.tab-btn {
+    flex: 1;
+    background-color: #0f3460;
+    color: #e0e0e0;
+    border: none;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1em;
+    font-weight: 500;
+    border-right: 1px solid #1a4a82;
+}
+
+.tab-btn:last-child {
+    border-right: none;
+}
+
+.tab-btn:hover {
+    background-color: #1a4a82;
+    transform: translateY(-1px);
+}
+
+.tab-btn.active {
+    background-color: #e94560;
+    color: white;
+}
+
+.tab-btn.active:hover {
+    background-color: #c93a50;
+    transform: translateY(0);
+}
+
+.tab-icon {
+    font-size: 1.1em;
+}
+
+/* Contenido de las pestañas */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Formulario */
@@ -160,18 +238,92 @@ button:active {
     background-color: #4CAF50;
 }
 
+/* Sección de decodificación */
+.decoder-info {
+    background-color: #0d1629;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #72ef72;
+}
+
+.decoder-info p {
+    margin: 0;
+    color: #b0b0b0;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+#decoder-section {
+    padding-top: 0;
+    margin-top: 0;
+    border-top: none;
+}
+
+#decodeButton {
+    background-color: #0f3460;
+    font-size: 0.95em;
+    padding: 10px 15px;
+    margin-top: 15px;
+    width: 100%;
+}
+
+#decodeButton:hover {
+    background-color: #1a4a82;
+}
+
+#dateOutput {
+    background-color: #0d1629;
+    color: #72ef72;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+    word-wrap: break-word;
+    border: 1px dashed #0f3460;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .header {
-        flex-direction: column;
-        gap: 15px;
+        margin-top: 5px;
     }
     
     .container {
         padding: 20px 25px;
+        padding-top: 45px; /* Espacio para los botones de idioma */
+    }
+    
+    .language-selector {
+        top: 10px;
+        right: 15px;
+    }
+    
+    .lang-btn {
+        padding: 5px 8px;
+        font-size: 0.75em;
     }
     
     h1 {
         font-size: 1.5em;
+    }
+    
+    .tab-btn {
+        padding: 12px 15px;
+        font-size: 0.9em;
+    }
+    
+    .tab-icon {
+        font-size: 1em;
+    }
+    
+    .tab-navigation {
+        margin: 15px 0;
     }
 }

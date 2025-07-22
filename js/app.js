@@ -2,9 +2,8 @@
 const translations = {
     es: {
         title: "Generador de Seriales Ultra Únicos",
-        minSegmentLength: "Longitud Mínima de Segmento:",
-        maxSegmentLength: "Longitud Máxima de Segmento:",
-        randomPartLength: "Longitud de Parte Aleatoria (sin guiones/timestamp):",
+        segmentLength: "Tamaño de Segmentos:",
+        totalRandomLength: "Caracteres Aleatorios:",
         prefix: "Prefijo (Opcional):",
         generateButton: "Generar Serial",
         copyButton: "Copiar Serial",
@@ -13,13 +12,21 @@ const translations = {
         generating: "Generando...",
         errorPrefix: "Error:",
         errorMessage: "Asegúrate de que tu navegador soporta Web Crypto API y los valores son válidos.",
-        copyError: "No se pudo copiar el serial. Por favor, cópialo manualmente."
+        copyError: "No se pudo copiar el serial. Por favor, cópialo manualmente.",
+        generatorTab: "Generar Serial",
+        decoderTab: "Decodificar Fecha",
+        decoderDescription: "Pega un serial generado anteriormente para ver cuándo fue creado",
+        serialInput: "Serial a Decodificar:",
+        decodeButton: "Decodificar Fecha",
+        dateOutputInitial: "Ingresa un serial para ver su fecha de creación",
+        invalidSerial: "Serial inválido o no contiene timestamp",
+        createdOn: "Serial creado el:",
+        at: "a las"
     },
     en: {
         title: "Ultra Unique Serial Generator",
-        minSegmentLength: "Minimum Segment Length:",
-        maxSegmentLength: "Maximum Segment Length:",
-        randomPartLength: "Random Part Length (without dashes/timestamp):",
+        segmentLength: "Segment Size:",
+        totalRandomLength: "Random Characters:",
         prefix: "Prefix (Optional):",
         generateButton: "Generate Serial",
         copyButton: "Copy Serial",
@@ -28,25 +35,53 @@ const translations = {
         generating: "Generating...",
         errorPrefix: "Error:",
         errorMessage: "Make sure your browser supports Web Crypto API and the values are valid.",
-        copyError: "Could not copy the serial. Please copy it manually."
+        copyError: "Could not copy the serial. Please copy it manually.",
+        generatorTab: "Generate Serial",
+        decoderTab: "Decode Date",
+        decoderDescription: "Paste a previously generated serial to see when it was created",
+        serialInput: "Serial to Decode:",
+        decodeButton: "Decode Date",
+        dateOutputInitial: "Enter a serial to see its creation date",
+        invalidSerial: "Invalid serial or no timestamp found",
+        createdOn: "Serial created on:",
+        at: "at"
     }
 };
 
 // Estado global de la aplicación
 let currentLanguage = 'es';
 let currentSerial = '';
+let currentTab = 'generator';
+
+// Función para cambiar de pestaña
+function switchTab(tabName) {
+    currentTab = tabName;
+    
+    // Actualizar botones de pestañas
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    
+    // Actualizar contenido de pestañas
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(`${tabName}-section`).classList.add('active');
+    
+    // Guardar preferencia en localStorage
+    localStorage.setItem('preferredTab', tabName);
+}
 
 // Función para generar el serial con alta entropía
 async function generateHighEntropySerialNumber(
-    minSegmentLength = 4,
-    maxSegmentLength = 8,
-    randomPartLength = 24,
+    segmentLength = 6,
+    totalRandomLength = 24,
     prefix = null
 ) {
     // Validaciones y Ajustes de Parámetros
-    const validatedMinSegmentLength = Math.max(1, minSegmentLength);
-    const validatedMaxSegmentLength = Math.max(validatedMinSegmentLength, maxSegmentLength);
-    const validatedRandomPartLength = Math.max(validatedMinSegmentLength, randomPartLength);
+    const validatedSegmentLength = Math.max(1, Math.min(12, segmentLength));
+    const validatedTotalRandomLength = Math.max(6, Math.min(50, totalRandomLength));
 
     // Configuración de Caracteres
     const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -70,42 +105,29 @@ async function generateHighEntropySerialNumber(
 
     // 2. Generar los Caracteres Aleatorios Brutos
     let rawRandomChars = '';
-    for (let i = 0; i < validatedRandomPartLength; i++) {
+    for (let i = 0; i < validatedTotalRandomLength; i++) {
         const byteValue = getSecureRandomByte();
         const randomIndex = Math.floor((byteValue / BYTE_BUFFER_SIZE) * charsLength);
         rawRandomChars += chars[randomIndex];
     }
 
-    // 3. Formato de la Parte Aleatoria con Guiones Random
+    // 3. Formato de la Parte Aleatoria con Guiones
     let formattedRandomPart = '';
-    let currentPosInRandom = 0;
+    let currentPos = 0;
 
-    while (currentPosInRandom < validatedRandomPartLength) {
-        let segmentLengthToUse = validatedMinSegmentLength;
+    while (currentPos < validatedTotalRandomLength) {
+        const remainingLength = validatedTotalRandomLength - currentPos;
+        const currentSegmentLength = Math.min(validatedSegmentLength, remainingLength);
+        
+        formattedRandomPart += rawRandomChars.substring(currentPos, currentPos + currentSegmentLength);
+        currentPos += currentSegmentLength;
 
-        const remainingCharsInRandomPart = validatedRandomPartLength - (currentPosInRandom + validatedMinSegmentLength);
-        if (remainingCharsInRandomPart > 0) {
-            const maxAdditionalLengthForSegment = Math.min(
-                validatedMaxSegmentLength - validatedMinSegmentLength,
-                remainingCharsInRandomPart
-            );
-            if (maxAdditionalLengthForSegment > 0) {
-                const randomByte = getSecureRandomByte();
-                segmentLengthToUse += Math.floor((randomByte / BYTE_BUFFER_SIZE) * (maxAdditionalLengthForSegment + 1));
-            }
-        } else {
-            segmentLengthToUse = validatedRandomPartLength - currentPosInRandom;
-        }
-
-        formattedRandomPart += rawRandomChars.substring(currentPosInRandom, currentPosInRandom + segmentLengthToUse);
-        currentPosInRandom += segmentLengthToUse;
-
-        if (currentPosInRandom < validatedRandomPartLength) {
+        if (currentPos < validatedTotalRandomLength) {
             formattedRandomPart += '-';
         }
     }
 
-    // 4. Construir el Serial Final Usando un Array
+    // 4. Construir el Serial Final
     const finalSerialParts = [];
 
     if (prefix && String(prefix).trim().length > 0) {
@@ -116,6 +138,91 @@ async function generateHighEntropySerialNumber(
     finalSerialParts.push(formattedRandomPart);
 
     return finalSerialParts.join('-');
+}
+
+// Función para decodificar la fecha de un serial
+function decodeSerialTimestamp(serial) {
+    if (!serial || typeof serial !== 'string') {
+        return null;
+    }
+
+    // Dividir el serial por guiones
+    const parts = serial.split('-');
+    
+    if (parts.length < 2) {
+        return null;
+    }
+
+    // El timestamp está en la segunda parte (después del prefijo si existe)
+    let timestampPart;
+    
+    // Si hay prefijo, el timestamp está en el segundo elemento
+    // Si no hay prefijo, está en el primer elemento
+    if (parts.length >= 3) {
+        timestampPart = parts[1]; // Con prefijo
+    } else {
+        timestampPart = parts[0]; // Sin prefijo
+    }
+
+    try {
+        // Convertir de base36 a timestamp
+        const timestamp = parseInt(timestampPart, 36);
+        
+        // Verificar que el timestamp sea válido (debe ser un número positivo razonable)
+        if (isNaN(timestamp) || timestamp <= 0 || timestamp > Date.now() + 86400000) { // +1 día de margen
+            return null;
+        }
+
+        return new Date(timestamp);
+    } catch (error) {
+        return null;
+    }
+}
+
+// Función para formatear la fecha decodificada
+function formatDecodedDate(date, language = 'es') {
+    if (!date || !(date instanceof Date)) {
+        return null;
+    }
+
+    const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'short'
+    };
+
+    const locale = language === 'es' ? 'es-ES' : 'en-US';
+    return date.toLocaleDateString(locale, options);
+}
+
+// Función para manejar la decodificación de seriales
+function handleDecodeSerial() {
+    const t = translations[currentLanguage];
+    const serialInput = document.getElementById('serialInput');
+    const dateOutput = document.getElementById('dateOutput');
+    
+    const inputSerial = serialInput.value.trim();
+    
+    if (!inputSerial) {
+        dateOutput.textContent = t.dateOutputInitial;
+        dateOutput.style.color = '#72ef72';
+        return;
+    }
+    
+    const decodedDate = decodeSerialTimestamp(inputSerial);
+    
+    if (decodedDate) {
+        const formattedDate = formatDecodedDate(decodedDate, currentLanguage);
+        dateOutput.textContent = `${t.createdOn} ${formattedDate}`;
+        dateOutput.style.color = '#72ef72';
+    } else {
+        dateOutput.textContent = t.invalidSerial;
+        dateOutput.style.color = '#e94560';
+    }
 }
 
 // Función para cambiar el idioma
@@ -137,13 +244,26 @@ function changeLanguage(lang) {
 function updateUI() {
     const t = translations[currentLanguage];
     
-    // Actualizar textos
+    // Actualizar textos principales
     document.getElementById('title').textContent = t.title;
-    document.querySelector('label[for="minSegmentLength"]').textContent = t.minSegmentLength;
-    document.querySelector('label[for="maxSegmentLength"]').textContent = t.maxSegmentLength;
-    document.querySelector('label[for="randomPartLength"]').textContent = t.randomPartLength;
+    document.querySelector('label[for="segmentLength"]').textContent = t.segmentLength;
+    document.querySelector('label[for="totalRandomLength"]').textContent = t.totalRandomLength;
     document.querySelector('label[for="prefix"]').textContent = t.prefix;
     document.getElementById('generateButton').textContent = t.generateButton;
+    
+    // Actualizar pestañas
+    document.getElementById('generatorTabText').textContent = t.generatorTab;
+    document.getElementById('decoderTabText').textContent = t.decoderTab;
+    
+    // Actualizar sección de decodificación
+    document.getElementById('decoderDescription').textContent = t.decoderDescription;
+    document.querySelector('label[for="serialInput"]').textContent = t.serialInput;
+    document.getElementById('decodeButton').textContent = t.decodeButton;
+    
+    // Actualizar placeholder del input de serial
+    document.getElementById('serialInput').placeholder = currentLanguage === 'es' ? 
+        'Ejemplo: PRODKEY-1ABCD23-EF45-GH67' : 
+        'Example: PRODKEY-1ABCD23-EF45-GH67';
     
     // Actualizar botón de copiar solo si no está en estado "copiado"
     const copyButton = document.getElementById('copyButton');
@@ -156,6 +276,13 @@ function updateUI() {
     if (serialOutput.textContent === translations.es.initialMessage || 
         serialOutput.textContent === translations.en.initialMessage) {
         serialOutput.textContent = t.initialMessage;
+    }
+    
+    // Actualizar mensaje inicial del decodificador si es necesario
+    const dateOutput = document.getElementById('dateOutput');
+    if (dateOutput.textContent === translations.es.dateOutputInitial || 
+        dateOutput.textContent === translations.en.dateOutputInitial) {
+        dateOutput.textContent = t.dateOutputInitial;
     }
 }
 
@@ -171,15 +298,13 @@ async function handleGenerateSerial() {
     copyButton.textContent = t.copyButton; // Resetear texto del botón de copiar
 
     try {
-        const minSegLen = parseInt(document.getElementById('minSegmentLength').value);
-        const maxSegLen = parseInt(document.getElementById('maxSegmentLength').value);
-        const randPartLen = parseInt(document.getElementById('randomPartLength').value);
+        const segmentLen = parseInt(document.getElementById('segmentLength').value);
+        const totalRandomLen = parseInt(document.getElementById('totalRandomLength').value);
         const prefixVal = document.getElementById('prefix').value.trim();
 
         const generatedSerial = await generateHighEntropySerialNumber(
-            minSegLen,
-            maxSegLen,
-            randPartLen,
+            segmentLen,
+            totalRandomLen,
             prefixVal
         );
         
@@ -216,13 +341,48 @@ function copyToClipboard() {
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    // Cargar idioma preferido del localStorage
+    // Cargar preferencias del localStorage
     const savedLanguage = localStorage.getItem('preferredLanguage') || 'es';
+    const savedTab = localStorage.getItem('preferredTab') || 'generator';
     currentLanguage = savedLanguage;
+    currentTab = savedTab;
     
-    // Configurar event listeners
+    // Configurar event listeners principales
     document.getElementById('generateButton').addEventListener('click', handleGenerateSerial);
     document.getElementById('copyButton').addEventListener('click', copyToClipboard);
+    document.getElementById('decodeButton').addEventListener('click', handleDecodeSerial);
+    
+    // Configurar event listeners para pestañas
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tabName = e.currentTarget.getAttribute('data-tab');
+            switchTab(tabName);
+        });
+    });
+    
+    // Configurar auto-generación cuando cambien los inputs (solo en la pestaña generador)
+    const autoGenerateInputs = ['segmentLength', 'totalRandomLength', 'prefix'];
+    autoGenerateInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        input.addEventListener('input', () => {
+            // Solo auto-generar si estamos en la pestaña de generador
+            if (currentTab === 'generator') {
+                clearTimeout(input.autoGenerateTimeout);
+                input.autoGenerateTimeout = setTimeout(() => {
+                    handleGenerateSerial();
+                }, 500);
+            }
+        });
+    });
+    
+    // Configurar decodificación automática cuando se escriba en el input de serial
+    const serialInput = document.getElementById('serialInput');
+    serialInput.addEventListener('input', () => {
+        clearTimeout(serialInput.decodeTimeout);
+        serialInput.decodeTimeout = setTimeout(() => {
+            handleDecodeSerial();
+        }, 300);
+    });
     
     // Configurar botones de idioma
     document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -234,7 +394,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Inicializar UI
     changeLanguage(currentLanguage);
+    switchTab(currentTab);
     
-    // Generar un serial inicial
-    handleGenerateSerial();
+    // Generar un serial inicial solo si estamos en la pestaña de generador
+    if (currentTab === 'generator') {
+        handleGenerateSerial();
+    }
 });

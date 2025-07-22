@@ -8,42 +8,71 @@
 </head>
 <body>
     <div class="container">
+        <div class="language-selector">
+            <button class="lang-btn active" data-lang="es">ES</button>
+            <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+        
         <div class="header">
             <h1 id="title">Generador de Seriales Ultra Únicos</h1>
-            <div class="language-selector">
-                <button class="lang-btn active" data-lang="es">ES</button>
-                <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+
+        <!-- Navegación por pestañas -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="generator" id="generatorTab">
+                <span class="tab-icon">🔢</span>
+                <span id="generatorTabText">Generar Serial</span>
+            </button>
+            <button class="tab-btn" data-tab="decoder" id="decoderTab">
+                <span class="tab-icon">📅</span>
+                <span id="decoderTabText">Decodificar Fecha</span>
+            </button>
+        </div>
+
+        <!-- Sección de Generador -->
+        <div id="generator-section" class="tab-content active">
+            <div class="form-group">
+                <label for="segmentLength">Tamaño de Segmentos:</label>
+                <input type="number" id="segmentLength" value="6" min="1" max="12">
+            </div>
+
+            <div class="form-group">
+                <label for="totalRandomLength">Caracteres Aleatorios:</label>
+                <input type="number" id="totalRandomLength" value="24" min="6" max="50">
+            </div>
+
+            <div class="form-group">
+                <label for="prefix">Prefijo (Opcional):</label>
+                <input type="text" id="prefix" value="PRODKEY" maxlength="10">
+            </div>
+
+            <button id="generateButton">Generar Serial</button>
+
+            <div id="serialOutput">
+                Haz clic en "Generar Serial"
+            </div>
+
+            <div class="copy-button-container">
+                <button id="copyButton">Copiar Serial</button>
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="minSegmentLength">Longitud Mínima de Segmento:</label>
-            <input type="number" id="minSegmentLength" value="4" min="1">
-        </div>
-
-        <div class="form-group">
-            <label for="maxSegmentLength">Longitud Máxima de Segmento:</label>
-            <input type="number" id="maxSegmentLength" value="8" min="1">
-        </div>
-
-        <div class="form-group">
-            <label for="randomPartLength">Longitud de Parte Aleatoria (sin guiones/timestamp):</label>
-            <input type="number" id="randomPartLength" value="24" min="1">
-        </div>
-
-        <div class="form-group">
-            <label for="prefix">Prefijo (Opcional):</label>
-            <input type="text" id="prefix" value="PRODKEY">
-        </div>
-
-        <button id="generateButton">Generar Serial</button>
-
-        <div id="serialOutput">
-            Haz clic en "Generar Serial"
-        </div>
-
-        <div class="copy-button-container">
-            <button id="copyButton">Copiar Serial</button>
+        <!-- Sección de Decodificador -->
+        <div id="decoder-section" class="tab-content">
+            <div class="decoder-info">
+                <p id="decoderDescription">Pega un serial generado anteriormente para ver cuándo fue creado</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="serialInput">Serial a Decodificar:</label>
+                <input type="text" id="serialInput" placeholder="Ejemplo: PRODKEY-1ABCD23-EF45-GH67">
+            </div>
+            
+            <button id="decodeButton">Decodificar Fecha</button>
+            
+            <div id="dateOutput">
+                Ingresa un serial para ver su fecha de creación
+            </div>
         </div>
     </div>
 
